@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/iune-co/infrastructure-dependency-container.git",
       "state" : {
-        "revision" : "cf0cc99a0636342ca598c4d11a30a55fb3f2f17f",
-        "version" : "1.0.0"
+        "revision" : "51a3a1ecbe867c4aaf1a704170883660a2f66957",
+        "version" : "1.1.0"
       }
     }
   ],

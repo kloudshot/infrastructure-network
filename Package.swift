@@ -20,8 +20,8 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "git@github.com/iune-co/infrastructure-dependency-container.git",
-            exact: Version("1.0.0")
+            url: "git@github.com:iune-co/infrastructure-dependency-container.git",
+            exact: Version("1.1.0")
         )
     ],
     targets: [
