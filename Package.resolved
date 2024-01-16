@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "infrastructure-dependency-container",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/iune-co/infrastructure-dependency-container.git",
+      "state" : {
+        "revision" : "cf0cc99a0636342ca598c4d11a30a55fb3f2f17f",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 2
+}
