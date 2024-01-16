@@ -24,6 +24,9 @@ jobs:
       - name: Configure Git to use SSH
         run: git config --add url."git@github.com:".insteadOf "https://github.com/"
 
+      - name: Use Xcode 15.1
+        run: sudo xcode-select --switch /Applications/Xcode_15.1.app
+
       - name: Build and test
         run: |
           swift build
