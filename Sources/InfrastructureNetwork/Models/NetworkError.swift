@@ -10,4 +10,5 @@ public enum NetworkError: Error
     case noData
     case other
     case parsingError
+    case noNetworkConnection
 }

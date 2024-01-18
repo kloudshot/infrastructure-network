@@ -29,6 +29,32 @@ final class NetworkProviderImplementationTests: XCTestCase
         }
     }
     
+    func test_whenNetworkSessionThrowsNotConnectedToInternet_networkProviderThrowsNoNetworkConnection() async
+    {
+        // Given
+        let networkSessionSpy = NetworkSessionSpy(errorToThrow: URLError(.notConnectedToInternet))
+        let networkProvider = NetworkProviderImplementation(networkSession: networkSessionSpy)
+        
+        do
+        {
+            // When
+            let _: StubInstance1 = try await networkProvider.request(StubEndpoint.getEndpoint)
+            XCTFail("Expected NetworkError.noNetworkConnection, got success instead.")
+        }
+        catch let error as NetworkError
+        {
+            // Then
+            XCTAssertEqual(
+                error,
+                NetworkError.noNetworkConnection
+            )
+        }
+        catch let error
+        {
+            XCTFail("Expected NetworkError.noNetworkConnection, got \(error) instead.")
+        }
+    }
+    
     func test_whenNetworkSessionThrowsNonHandledError_networkProviderThrowsSameError() async
     {
         // Given

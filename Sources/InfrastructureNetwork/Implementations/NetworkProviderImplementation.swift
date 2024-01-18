@@ -76,6 +76,11 @@ public final class NetworkProviderImplementation: NetworkProvider
             logger?.log(error: error)
             throw NetworkError.timeout
         }
+        catch let error as URLError where error.code == .notConnectedToInternet
+        {
+            logger?.log(error: error)
+            throw NetworkError.noNetworkConnection
+        }
         catch
         {
             logger?.log(error: error)
