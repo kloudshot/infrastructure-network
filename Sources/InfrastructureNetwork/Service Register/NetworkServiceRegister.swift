@@ -10,11 +10,11 @@ public struct NetworkServiceRegister: ServiceRegister
     
     public func register(on container: DependencyContainer) 
     {
-        container.register {
+        container.register(service: NetworkProvider.self) {
             NetworkProviderImplementation(
                 logger: NetworkLoggerImplementation(),
                 networkSession: URLSession.shared
-            ) as NetworkProvider
+            )
         }
     }
 }
