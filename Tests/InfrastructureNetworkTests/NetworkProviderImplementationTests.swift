@@ -432,10 +432,10 @@ final class NetworkProviderImplementationTests: XCTestCase
         let queryItemSorting: (URLQueryItem, URLQueryItem) -> Bool = { $0.name < $1.name }
         let queryParameters: [String: String?] = [
             "string": "string",
-            "int": String(1),
-            "double": String(1.0),
-            "float": String(1.0 as Float),
-            "parameterWithNoValue": String?(nil)
+            "int": "1",
+            "double": "1.0",
+            "float": "1.0",
+            "parameterWithNoValue": nil
         ]
         let expectedQueryParameters = queryParameters
             .map(URLQueryItem.init)
