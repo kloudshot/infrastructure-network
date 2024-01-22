@@ -5,7 +5,7 @@ enum StubEndpoint: Endpoint
     case invalidURLEndpoint
     case getEndpoint
     case postEndpoint
-    case queryParametersEndpoint([String: Any?])
+    case queryParametersEndpoint([String: String?])
     case encodableBodyEndpoint(StubRequest)
     
     var baseURL: String

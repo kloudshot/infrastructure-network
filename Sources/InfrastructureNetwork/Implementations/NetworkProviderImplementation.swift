@@ -27,35 +27,35 @@ public final class NetworkProviderImplementation: NetworkProvider
             
             guard let httpResponse = urlResponse as? HTTPURLResponse else
             {
-                throw NetworkError.nonHTTResponse
+                throw NetworkProviderError.nonHTTResponse
             }
             
             switch httpResponse.statusCode
             {
                 case 404:
-                    throw NetworkError.notFound
+                    throw NetworkProviderError.notFound
                     
                 case 403:
-                    throw NetworkError.unauthorized
+                    throw NetworkProviderError.unauthorized
                     
                 case 408:
-                    throw NetworkError.timeout
+                    throw NetworkProviderError.timeout
                     
                 case 400...499:
-                    throw NetworkError.invalidRequest
+                    throw NetworkProviderError.invalidRequest
                     
                 case 500...599:
-                    throw NetworkError.serverError
+                    throw NetworkProviderError.serverError
                     
                 case 200...299:
                     guard !data.isEmpty else
                     {
-                        throw NetworkError.noData
+                        throw NetworkProviderError.noData
                     }
                     break
                     
                 default:
-                    throw NetworkError.other
+                    throw NetworkProviderError.other
             }
             
             do
@@ -68,18 +68,18 @@ public final class NetworkProviderImplementation: NetworkProvider
             catch
             {
                 logger?.log(error: error)
-                throw NetworkError.parsingError
+                throw NetworkProviderError.parsingError
             }
         }
         catch let error as URLError where error.code == .timedOut
         {
             logger?.log(error: error)
-            throw NetworkError.timeout
+            throw NetworkProviderError.timeout
         }
         catch let error as URLError where error.code == .notConnectedToInternet
         {
             logger?.log(error: error)
-            throw NetworkError.noNetworkConnection
+            throw NetworkProviderError.noNetworkConnection
         }
         catch
         {
@@ -94,7 +94,7 @@ public final class NetworkProviderImplementation: NetworkProvider
 
         guard let url = URL(string: urlString) else
         {
-            throw NetworkError.invalidURL
+            throw NetworkProviderError.invalidURL
         }
 
         var urlRequest = URLRequest(url: url)
@@ -126,18 +126,7 @@ public final class NetworkProviderImplementation: NetworkProvider
                     return urlRequest
                 }
 
-                let queryItems = parameters.map { (key, value) in
-                    let value: String? = if let value {
-                        "\(value)"
-                    } else {
-                        nil
-                    }
-                    return URLQueryItem(
-                        name: key,
-                        value: value
-                    )
-                }
-                urlComponents.queryItems = queryItems
+                urlComponents.queryItems = parameters.map(URLQueryItem.init)
                 urlRequest.url = urlComponents.url
         }
         

@@ -15,12 +15,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance2 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.parsingError, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.parsingError
+                NetworkProviderError.parsingError
             )
         }
         catch
@@ -41,12 +41,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await networkProvider.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.noNetworkConnection, got success instead.")
         }
-        catch let error as NetworkError
+        catch let error as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 error,
-                NetworkError.noNetworkConnection
+                NetworkProviderError.noNetworkConnection
             )
         }
         catch let error
@@ -97,12 +97,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.other, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.other
+                NetworkProviderError.other
             )
         }
         catch
@@ -126,12 +126,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.nonHTTResponse, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.nonHTTResponse
+                NetworkProviderError.nonHTTResponse
             )
         }
         catch
@@ -152,12 +152,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.unauthorized, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.unauthorized
+                NetworkProviderError.unauthorized
             )
         }
         catch
@@ -178,12 +178,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.notFound, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.notFound
+                NetworkProviderError.notFound
             )
         }
         catch
@@ -204,12 +204,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.timeout, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.timeout
+                NetworkProviderError.timeout
             )
         }
         catch
@@ -230,12 +230,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.invalidRequest, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.invalidRequest
+                NetworkProviderError.invalidRequest
             )
         }
         catch
@@ -256,12 +256,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.serverError, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.serverError
+                NetworkProviderError.serverError
             )
         }
         catch
@@ -282,12 +282,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1 = try await sut.request(StubEndpoint.getEndpoint)
             XCTFail("Expected NetworkError.noData, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.noData
+                NetworkProviderError.noData
             )
         }
         catch
@@ -307,12 +307,12 @@ final class NetworkProviderImplementationTests: XCTestCase
             let _: StubInstance1  = try await networkProvider.request(StubEndpoint.invalidURLEndpoint)
             XCTFail("Expected NetworkError.invalidURL thrown, got success instead.")
         }
-        catch let errorThrown as NetworkError
+        catch let errorThrown as NetworkProviderError
         {
             // Then
             XCTAssertEqual(
                 errorThrown,
-                NetworkError.invalidURL
+                NetworkProviderError.invalidURL
             )
         }
         catch let error
@@ -429,14 +429,17 @@ final class NetworkProviderImplementationTests: XCTestCase
     func test_whenEndpointBodyIsQueryParameter_requestHasCorrectQueryItems() async
     {
         // Given
-        let queryParameters: [String: Any?] = [
+        let queryItemSorting: (URLQueryItem, URLQueryItem) -> Bool = { $0.name < $1.name }
+        let queryParameters: [String: String?] = [
             "string": "string",
-            "int": 1,
-            "double": 1.0,
-            "float": 1.0 as Float,
-            "parameterWithNoValue": nil
+            "int": String(1),
+            "double": String(1.0),
+            "float": String(1.0 as Float),
+            "parameterWithNoValue": String?(nil)
         ]
-        let expectedQueryParameters = makeQueryItems(from: queryParameters)
+        let expectedQueryParameters = queryParameters
+            .map(URLQueryItem.init)
+            .sorted(by: queryItemSorting)
         let networkSessionSpy = NetworkSessionSpy.fixture()
         let sut = NetworkProviderImplementation(networkSession: networkSessionSpy)
         
@@ -449,6 +452,7 @@ final class NetworkProviderImplementationTests: XCTestCase
             {
                 // Then
                 let receivedQueryParameters = getQueryItems(from: receivedURLRequest)
+                    .sorted(by: queryItemSorting)
                 XCTAssertEqual(
                     receivedQueryParameters,
                     expectedQueryParameters
@@ -468,7 +472,7 @@ final class NetworkProviderImplementationTests: XCTestCase
     func test_whenEndpointHasCustomHeaders_requestHasCorrectHeaders() async
     {
         // Given
-        let queryParameters: [String: Any?] = [
+        let queryParameters: [String: String?] = [
             "query": "value"
         ]
         let expectedHeaders = StubEndpoint.queryParametersEndpoint(queryParameters).headers
@@ -496,7 +500,7 @@ final class NetworkProviderImplementationTests: XCTestCase
     func test_whenEndpointHasCustomPath_requestHasCorrectPath() async
     {
         // Given
-        let queryParameters: [String: Any?] = [
+        let queryParameters: [String: String?] = [
             "key": "value"
         ]
         let endpoint = StubEndpoint.queryParametersEndpoint(queryParameters)
@@ -575,21 +579,6 @@ final class NetworkProviderImplementationTests: XCTestCase
     }
 
     // MARK: - Utility methods
-    func makeQueryItems(from dictionary: [String: Any?]) -> [URLQueryItem]
-    {
-        dictionary.map { (key, value) in
-            let value: String? = if let value {
-                "\(value)"
-            } else {
-                nil
-            }
-            return URLQueryItem(
-                name: key,
-                value: value
-            )
-        }
-    }
-    
     func getQueryItems(from request: URLRequest) -> [URLQueryItem]
     {
         guard
