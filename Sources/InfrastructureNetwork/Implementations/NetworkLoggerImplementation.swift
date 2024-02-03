@@ -1,18 +1,20 @@
 import Foundation
+import InfrastructureNetworkAPI
 import os.log
 
-public final class NetworkLoggerImplementation: NetworkLogger
-{
+final class NetworkLoggerImplementation: NetworkLogger {
     private let headingDash = "=========="
-    private let logger = Logger(
-        subsystem: "co.iune.infrastructure.network",
-        category: "NetworkLogging"
-    )
+	private let logger = {
+		let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
+
+		return Logger(
+			subsystem: bundleIdentifier + ".network",
+			category: "NetworkLogging"
+		)
+	}()
     
-    private func getJSONString(from data: Data?) throws -> String
-    {
-        guard let data = data else
-        {
+    private func getJSONString(from data: Data?) throws -> String {
+        guard let data = data else {
             throw NSError(
                 domain: "DataError",
                 code: 0,
@@ -32,19 +34,15 @@ public final class NetworkLoggerImplementation: NetworkLogger
             options: .prettyPrinted
         )
         
-        if
-            let prettyString = String(
+        if let prettyString = String(
                 data: prettyData,
                 encoding: .utf8
-            )
-        {
+            ) {
             return prettyString
                 .split(separator: "\n")
                 .map{ "\t\($0)" }
                 .joined(separator: "\n")
-        }
-        else
-        {
+        } else {
             throw NSError(
                 domain: "StringError",
                 code: 1,
@@ -55,8 +53,7 @@ public final class NetworkLoggerImplementation: NetworkLogger
         }
     }
     
-    public func log(request: URLRequest)
-    {
+    func log(request: URLRequest) {
         #if DEBUG
         let httpMethod = request.httpMethod ?? "HTTP Method not specified"
         let path = request.url?.absoluteString ?? "Path not specified"
@@ -67,19 +64,15 @@ public final class NetworkLoggerImplementation: NetworkLogger
         logger.debug("Method: \(httpMethod)")
         logger.debug("Path: \(path)")
         logger.debug("Headers:")
-        for (key, value) in headers
-        {
+        for (key, value) in headers {
             logger.debug("\t\(key): \(value)")
         }
         
         logger.debug("Body:")
-        do
-        {
+        do {
             let bodyString = try getJSONString(from: bodyData)
             logger.debug("\(bodyString)")
-        }
-        catch
-        {
+        } catch {
             logger.debug("\tRequest without body or error showing body")
         }
         
@@ -87,7 +80,7 @@ public final class NetworkLoggerImplementation: NetworkLogger
         #endif
     }
     
-    public func log(
+    func log(
         response: URLResponse,
         data: Data?
     ) {
@@ -100,19 +93,16 @@ public final class NetworkLoggerImplementation: NetworkLogger
         logger.debug("Path: \(path)")
         logger.debug("Status code: \(response.statusCode)")
         logger.debug("Headers:")
-        for (key, value) in headers
-        {
+        for (key, value) in headers {
             logger.debug("\t\(String(describing: key)): \(String(describing: value))")
         }
         
         logger.debug("Body:")
-        do
-        {
+        do {
             let bodyString = try getJSONString(from: data)
             logger.debug("\(bodyString)")
         }
-        catch
-        {
+        catch {
             logger.debug("\tResponse without body or error showing body")
         }
         
@@ -120,8 +110,7 @@ public final class NetworkLoggerImplementation: NetworkLogger
         #endif
     }
     
-    public func log(error: Error)
-    {
+    func log(error: Error) {
         #if DEBUG
         logger.debug("\(self.headingDash) ERROR \(self.headingDash)")
         logger.debug("\(error.localizedDescription)")

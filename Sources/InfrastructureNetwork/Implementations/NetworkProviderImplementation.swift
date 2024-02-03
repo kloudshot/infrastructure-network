@@ -1,11 +1,11 @@
 import Foundation
+import InfrastructureNetworkAPI
 
-public final class NetworkProviderImplementation: NetworkProvider 
-{
+final class NetworkProviderImplementation: NetworkProvider {
     private let logger: NetworkLogger?
     private let networkSession: NetworkSession
     
-    public init(
+    init(
         logger: NetworkLogger? = nil,
         networkSession: NetworkSession
     ) {
@@ -13,10 +13,8 @@ public final class NetworkProviderImplementation: NetworkProvider
         self.networkSession = networkSession
     }
     
-    public func request<ResponseType: Decodable, EndpointType: Endpoint>(_ endpoint: EndpointType) async throws -> ResponseType
-    {
-        do
-        {
+    func request<ResponseType: Decodable, EndpointType: Endpoint>(_ endpoint: EndpointType) async throws -> ResponseType {
+        do {
             let urlRequest = try prepareUrlRequest(for: endpoint)
             logger?.log(request: urlRequest)
             let (data, urlResponse) = try await networkSession.data(for: urlRequest)
@@ -25,13 +23,11 @@ public final class NetworkProviderImplementation: NetworkProvider
                 data: data
             )
             
-            guard let httpResponse = urlResponse as? HTTPURLResponse else
-            {
+            guard let httpResponse = urlResponse as? HTTPURLResponse else {
                 throw NetworkProviderError.nonHTTResponse
             }
             
-            switch httpResponse.statusCode
-            {
+            switch httpResponse.statusCode {
                 case 404:
                     throw NetworkProviderError.notFound
                     
@@ -48,8 +44,7 @@ public final class NetworkProviderImplementation: NetworkProvider
                     throw NetworkProviderError.serverError
                     
                 case 200...299:
-                    guard !data.isEmpty else
-                    {
+                    guard !data.isEmpty else {
                         throw NetworkProviderError.noData
                     }
                     break
@@ -58,42 +53,35 @@ public final class NetworkProviderImplementation: NetworkProvider
                     throw NetworkProviderError.other
             }
             
-            do
-            {
+            do {
                 return try JSONDecoder().decode(
                     ResponseType.self,
                     from: data
                 )
             }
-            catch
-            {
+            catch {
                 logger?.log(error: error)
                 throw NetworkProviderError.parsingError
             }
         }
-        catch let error as URLError where error.code == .timedOut
-        {
+        catch let error as URLError where error.code == .timedOut {
             logger?.log(error: error)
             throw NetworkProviderError.timeout
         }
-        catch let error as URLError where error.code == .notConnectedToInternet
-        {
+        catch let error as URLError where error.code == .notConnectedToInternet {
             logger?.log(error: error)
             throw NetworkProviderError.noNetworkConnection
         }
-        catch
-        {
+        catch {
             logger?.log(error: error)
             throw error
         }
     }
     
-    private func prepareUrlRequest<EndpointType: Endpoint>(for endpoint: EndpointType) throws -> URLRequest
-    {
+    private func prepareUrlRequest<EndpointType: Endpoint>(for endpoint: EndpointType) throws -> URLRequest {
         let urlString = endpoint.baseURL + endpoint.path
 
-        guard let url = URL(string: urlString) else
-        {
+        guard let url = URL(string: urlString) else {
             throw NetworkProviderError.invalidURL
         }
 
@@ -108,8 +96,7 @@ public final class NetworkProviderImplementation: NetworkProvider
         
         urlRequest.httpMethod = endpoint.method.rawValue
 
-        switch endpoint.body
-        {
+        switch endpoint.body {
             case .plain:
                 break
                 
@@ -121,8 +108,7 @@ public final class NetworkProviderImplementation: NetworkProvider
                 )
             
             case let .queryParameter(parameters):
-                guard var urlComponents = URLComponents(string: urlString) else
-                {
+                guard var urlComponents = URLComponents(string: urlString) else {
                     return urlRequest
                 }
 
